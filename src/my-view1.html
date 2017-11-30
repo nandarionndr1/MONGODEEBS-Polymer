@@ -1,0 +1,469 @@
+<!--
+
+Group members:
+Deichmann, Jason
+Barraquias, Mark
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="shared-styles.html">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<dom-module id="my-view1">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+        #addBook{
+            display:none;
+        }
+        #removeBook{
+            display:none;
+        }
+        #allBooks{
+            display:none;
+        }
+        
+        #searchBy{
+            display:none;
+        }
+    </style>
+
+    <div class="card">
+      <h1>Bookeeping Services</h1>
+
+        <paper-button raised toggles class="indigo" id="buttonAddBook" on-click="toggleAddBook">Add Book</paper-button>
+        <paper-button raised toggles class="indigo" id="buttonRemoveBook" on-click="toggleRemoveBook">Remove Book</paper-button>
+        <paper-button raised toggles class="indigo" id="buttonViewAll" on-click="toggleViewAll">View All Books</paper-button>
+        
+        <paper-button raised toggles class="indigo" id="buttonSearchBy" on-click="toggleSearchBy">Search By</paper-button>
+        <br><br><hr>
+
+        <div id="addBook">
+            <paper-input label="Title" value="{{title}}" id="title"></paper-input>
+            <paper-dropdown-menu label="Category">
+              <paper-listbox attr-for-selected="value" slot="dropdown-content" id="category" selected="{{category}}">
+                <paper-item value="Action">Action</paper-item>
+                <paper-item value="Horror">Horror</paper-item>
+                <paper-item value="Comedy">Comedy</paper-item>
+                <paper-item value="Thriller">Thriller</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-input label="Description" value="{{description}}" id="description"></paper-input>
+            <paper-input label="Price" type="number" value="{{price}}" id="price"></paper-input>
+
+            <paper-button raised class = "indigo" on-click = "createBook">Submit</paper-button>
+        </div>
+        
+        <div id="searchBy">
+            <!-- book title-->
+            <paper-input label="Title" value="{{searchTitle}}" style="width:25%;display:inline-block" id="SearchTitle"></paper-input>
+            <paper-button raised toggles class="indigo" style="display:inline-block;" on-click="searchByTitle">Search by Book Title</paper-button>
+            <br>
+            
+            <!-- book categories-->
+            <paper-dropdown-menu label="Category">
+              <paper-listbox attr-for-selected="value" slot="dropdown-content"  selected="{{category}}">
+                <paper-item data-order="1" value="Action">Action</paper-item>
+                <paper-item data-order="2" value="Horror">Horror</paper-item>
+                <paper-item data-order="3" value="Comedy">Comedy</paper-item>
+                <paper-item data-order="4" value="Thriller">Thriller</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-button raised toggles class="indigo" id="" on-click="searchByCategory">Search by Book Category</paper-button>
+            
+            <!-- book price range-->
+            
+            <br>
+            <paper-input label="MIN" type="number" value="{{min}}" style="display:inline-block;width:10%" id="title"></paper-input>
+            <paper-input label="MAX" type="number" value="{{max}}" style="display:inline-block;width:10%" id="title"></paper-input>
+            
+            <paper-button raised toggles class="indigo" id="" style="display:inline-block;" on-click="searchByPR">Search by Price range</paper-button>
+            <!-- to do, price range-->
+            
+            <center><h2>Results</h2></center>
+        <table style="width: 100%; border: 1px solid black">
+            
+        <template is="dom-repeat" items="{{books}}" >
+                <tr>
+                    <td><span>{{item.title}}</span></td>
+                    <td><span>{{item.category}}</span></td>
+                    <td><span>{{item.description}}</span></td>
+                    <td><span>{{item.price}}</span></td>
+                </tr>
+        </template>
+            
+        </table>
+        </div>
+        
+        <div id="allBooks">
+            <br>
+            <table style="width: 100%; border: 1px solid black">
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                </tr>
+            <template is="dom-repeat" items="{{books}}" filter="{{_filter(filterVal)}}" >
+                <tr>
+                    <td><span>{{item.title}}</span></td>
+                    <td><span>{{item.category}}</span></td>
+                    <td><span>{{item.description}}</span></td>
+                    <td><span>{{item.price}}</span></td>
+                </tr>
+            </template>
+            </table>
+            <hr>
+             <input type="text" id="filt"  style="
+                width: 50%;
+                box-sizing: border-box;
+                border: 1px solid #ccc;
+                border-radius: 2px;
+                font-size: 20px;
+                background-color: white;
+                background-repeat: no-repeat;
+                padding: 8px 12px 4px 12px;"
+                placeholder="Enter book title"
+                   value="{{filterVal::input}}"> 
+            <hr>
+        </div>
+        <br>
+        <br>
+        <div id="removeBook" style="display:none">
+        <paper-dropdown-menu label="Books">
+              <paper-listbox slot="dropdown-content" attr-for-selected="value" slot="dropdown-content"  selected="{{title}}">
+                <template is="dom-repeat" items="{{books}}">
+                    <paper-item value="{{item.title}}">{{item.title}}</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu><br>
+            
+            <paper-button raised class = "indigo" on-click = "removeBook">Remove</paper-button>
+          
+        </div>
+        
+      <!---- Add book ---->
+       <iron-ajax
+            id = "dbInsertColl"
+            url = "http://127.0.0.1:8080/db/books"
+            params='("desc":"this is my first db created with restheart")'
+            method = "PUT"
+            handle-as = "json"
+            on-response=""
+            debounce-duration="300">
+       </iron-ajax>
+       <iron-ajax
+            id = "dbInsertDB"
+            url = "http://127.0.0.1:8080/db"
+            params='("desc":"this is my first db created with restheart")'
+            method = "PUT"
+            handle-as = "json"
+            on-response=""
+            debounce-duration="300">
+      </iron-ajax>
+        
+      <iron-ajax
+            id = "dbInsertBook"
+            url = "http://127.0.0.1:8080/db/books"
+            body = '[{"title":"[[title]]" , "category": "[[category]]", "description": "[[description]]", "price":"[[price]]"}]'
+            method = "POST"
+            handle-as = "json"
+            content-type = "application/json"
+            on-response="addNewBook"
+            debounce-duration="300">
+      </iron-ajax>
+
+      <!---- Remove book ---->
+      <iron-ajax
+            id = "dbRemoveBook"
+            url = "http://127.0.0.1:8080/db/books/*?filter={'title':'[[title]]'}"
+            method = "DELETE"
+            handle-as = "json"
+            content-type = "application/json"
+            on-response="onDeleteBook"
+            debounce-duration="300">
+      </iron-ajax>
+      <iron-ajax
+            id = "dbQuery"
+            url = "http://127.0.0.1:8080/db/books"
+            method = "GET"
+            handle-as = "json"
+            on-response="onReceivedDB"
+            debounce-duration="300">
+      </iron-ajax>
+      <iron-ajax
+            id = "dbQueryTitle"
+            url = "http://127.0.0.1:8080/db/books?filter={'title':{'$regex':'.*{{searchTitle}}'}}"
+            method = "GET"
+            handle-as = "json"
+            on-response="onReceivedDB"
+            debounce-duration="300">
+      </iron-ajax>
+      <iron-ajax
+            id = "dbQueryCategory"
+            url = "http://127.0.0.1:8080/db/books?filter={'category':'[[category]]'}"
+            method = "GET"
+            handle-as = "json"
+            on-response="onReceivedDB"
+            debounce-duration="300">
+      </iron-ajax>
+         <iron-ajax
+            id = "dbQueryPR",
+            url = "http://127.0.0.1:8080/db/books?filter={'price':{'$gte':'[[min]]','$lte':'[[max]]'}}"
+            method = "GET"
+            handle-as = "json"
+            on-response="onReceivedDB"
+            debounce-duration="300">
+      </iron-ajax>
+      
+      
+      <div id = "results" style="display: none"></div>
+      
+  </template>
+      
+  <script>
+    class MyView1 extends Polymer.Element {
+      static get is() { return 'my-view1'; }
+        
+        static get properties(){
+            return {
+                books:{
+                type: Array,
+                    value(){
+                        return [{
+                            type:{
+                                type: String
+                            },
+                            title:{
+                                type: String
+                            },
+                            category:{
+                                type: String
+                            },
+                            description:{
+                                type: String
+                            },
+                            price:{
+                                type: String
+                            }
+                        }];
+                    }
+                },
+                selectedBook:{
+                    type:String
+                },
+                searchVal:{
+                    type:String
+                },
+                searchTitle:{
+                    type:String
+                },
+                max:{
+                    type:String
+                },
+                min:{
+                    type:String
+                }
+            };
+        }
+        _filter(val) {  
+          return function(books) {
+            if (!val) return true;
+            if (!books) return false;
+            return (books.title && ~books.title.indexOf(val));
+          };
+        }
+       // IF ERROR PO, PAKI DELETE NLNG NITO KASI THIS MAKES NEW DB AND COLLECTION HEHE //
+        ready(){
+            super.ready();
+            performRequest();
+        }
+        
+        onSuccessCreate(e) {
+            const resp = e.detail.response;
+            var response = JSON.stringify(resp, null, ' ');
+            console.log("SUCCESS sent PUT request: "+e.detail.response);
+            this.$.results.innerHTML = response + "\n";
+        }
+        
+        performRequest() { 
+            this.$.dbInsertDB.generateRequest();
+            this.$.dbInsertColl.generateRequest();
+        }
+        searchByTitle(){
+            this.$.dbQueryTitle.generateRequest();
+            this.$.searchTitle.val="";
+        }
+        searchByPR(){
+            if (parseInt(this.min)<parseInt(this.max)){
+               // alert(this.min +" " +this.max);
+                this.$.dbQueryPR.generateRequest();
+                this.min = "";
+                this.max = "";
+            }
+            else if(this.min == "" || this.max == ""){
+                
+                alert("error!, please fill up zz");
+            }
+            else{
+                alert("error!, min value cannot be greater than max value");
+            }
+        
+        }
+        searchByCategory(){
+            
+            this.$.dbQueryCategory.generateRequest();
+            this.category=""
+        }
+        onCreateCollection() {
+            this.$.dbCollectionPost.generateRequest();
+        }
+        
+        createBook() {
+            this.$.dbInsertBook.generateRequest();
+        }
+        
+        removeBook() {
+            this.$.dbRemoveBook.generateRequest();
+        }
+        
+        queryDB() {
+            this.$.dbQuery.generateRequest();
+        }
+        
+        setSelectedBook(){
+            this.selectedBook = this.title;
+            alert(this.selectedBook);
+        }
+        onDeleteBook(e){
+            const resp = console.log(JSON.stringify(e.detail.response, null, ' '));
+            console.log(this.title);
+            this.refresh();
+        }
+        
+        refresh(){
+            var x = this.books.length;
+            for(var i = 0; i < x; i++){
+                console.log(i);
+                this.pop("books");
+            }
+            this.queryDB();
+        }
+        
+        addNewBook(){
+            this.push("books", {title: this.$.title.value, category: this.category, description: this.$.description.value, price: this.$.price.value});
+            this.$.title.value = "";
+            this.title = "";
+            this.category = "";
+            this.$.category.value = "";
+            this.$.description.value = "";
+            this.$.price.value = "";
+            alert("New book added!");
+        }
+        
+        onReceivedDB(e) {
+            var x = this.books.length;
+            for(var i = 0; i < x; i++){
+                console.log(i);
+                this.pop("books");
+            }
+            const resp = e.detail.response;
+            var response = JSON.stringify(resp, null, ' ');
+            this.$.results.innerHTML = response + "\n";
+            //var data = [];
+            //data.push(e.detail.response);
+            console.log(response);
+            for(var i = 0; i < resp['_embedded'].length; i++){
+                this.push("books", {title: resp['_embedded'][i]['title'], category: resp['_embedded'][i]['category'], description: resp['_embedded'][i]['description'], price: resp['_embedded'][i]['price']})
+            }
+            
+            this.push("books", e);
+            
+        }
+        
+        toggleAddBook(){
+            this.$.buttonRemoveBook.active = false;
+            this.$.buttonViewAll.active = false;
+            this.$.buttonSearchBy.active = false;
+            this.$.removeBook.style.display = "none"
+            this.$.allBooks.style.display = "none";
+            this.$.searchBy.style.display = "none";
+            if(this.$.buttonAddBook.active == false){
+                this.$.addBook.style.display = "block";
+            }
+            else{
+                this.$.addBook.style.display = "none";
+            }
+        }
+        toggleRemoveBook(){
+            this.$.buttonAddBook.active = false;
+            this.$.buttonViewAll.active = false;
+            this.$.buttonSearchBy.active = false;
+            this.$.addBook.style.display = "none";
+            this.$.allBooks.style.display = "none";
+            this.$.searchBy.style.display = "none";
+            if(this.$.buttonRemoveBook.active == false){
+                this.$.removeBook.style.display = "block";
+                this.refresh();
+            }
+            else{
+                this.$.removeBook.style.display = "none";
+            }
+        }
+        toggleSearchBy(){
+            this.$.buttonAddBook.active = false;
+            this.$.buttonRemoveBook.active = false;
+            this.$.buttonViewAll.active = false;
+            this.$.removeBook.style.display = "none";
+            this.$.addBook.style.display = "none";
+            this.$.allBooks.style.display = "none";
+            if(this.$.buttonSearchBy.active == false){
+                this.$.searchBy.style.display = "block";
+                this.refresh();
+            }
+            else{
+                this.$.searchBy.style.display = "none";
+            }
+        }
+        
+        toggleViewAll(){
+            this.$.buttonAddBook.active = false;
+            this.$.buttonRemoveBook.active = false;
+            this.$.buttonSearchBy.active = false;
+            this.$.removeBook.style.display = "none";
+            this.$.addBook.style.display = "none";
+            this.$.searchBy.style.display = "none";
+            if(this.$.buttonViewAll.active == false){
+                this.$.allBooks.style.display = "block";
+                this.refresh();
+            }
+            else{
+                this.$.allBooks.style.display = "none";
+            }
+            this.$.filt.value="";
+        }
+    }
+
+    window.customElements.define(MyView1.is, MyView1);
+  </script>
+</dom-module>
+<!--
+GET /test/coll?filter={'$and':[{'title':{'$regex':'(?i)^STAR TREK.*'},{'publishing_date':{'$gte':{'$date':'2015-09-04T08:00:00Z'}}}]}
+  
+or
+  
+GET /test/coll?filter={'price':{'$gte':'','$lte':}}
+
+-->
